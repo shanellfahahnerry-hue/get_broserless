@@ -1,21 +1,30 @@
-name: get_broserless
-on: workflow_dispatch
+name: Build ARM64 Mihomo Image Package
+
+on: 
+  workflow_dispatch: # 支持手动点击运行
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull and Save ARM Image
-        run: |
-          # 强制拉取 ARM64 版本
-          docker pull --platform linux/arm64 browserless/chrome:latest
-          # 打包并压缩（减小体积，好下载）
-          docker save browserless/chrome:latest -o browserless_arm.tar
-          gzip browserless_arm.tar
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Upload to Artifacts
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pull and Save Mihomo ARM64 Image
+        run: |
+          # 明确拉取针对 ARM64 架构的镜像
+          docker pull --platform linux/arm64 ghcr.io/metacubex/mihomo:latest
+          # 将镜像保存为 tar 包
+          docker save ghcr.io/metacubex/mihomo:latest -o mihomo_arm64.tar
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: arm-image-package
-          path: browserless_arm.tar.gz
-          retention-days: 1
+          name: mihomo-arm64-image
+          path: mihomo_arm64.tar
