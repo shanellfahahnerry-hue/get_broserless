@@ -1,0 +1,21 @@
+name: get_broserless
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull and Save ARM Image
+        run: |
+          # 强制拉取 ARM64 版本
+          docker pull --platform linux/arm64 browserless/chrome:latest
+          # 打包并压缩（减小体积，好下载）
+          docker save browserless/chrome:latest -o browserless_arm.tar
+          gzip browserless_arm.tar
+
+      - name: Upload to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm-image-package
+          path: browserless_arm.tar.gz
+          retention-days: 1
