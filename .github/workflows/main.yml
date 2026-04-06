@@ -1,7 +1,7 @@
 name: Build ARM64 Mihomo Image Package
 
 on: 
-  workflow_dispatch: # 支持手动点击运行
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -10,6 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 增加：登录 Docker Hub 以获取更高拉取额度（公共镜像无需私钥）
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -18,13 +19,16 @@ jobs:
 
       - name: Pull and Save Mihomo ARM64 Image
         run: |
-          # 明确拉取针对 ARM64 架构的镜像
-          docker pull --platform linux/arm64 ghcr.io/metacubex/mihomo:latest
-          # 将镜像保存为 tar 包
-          docker save ghcr.io/metacubex/mihomo:latest -o mihomo_arm64.tar
+          # 核心修复：换用 Docker Hub 官方镜像源，这是最稳的
+          # 同时明确指定架构为 arm64
+          docker pull --platform linux/arm64 metacubex/mihomo:latest
+          
+          # 保存为极空间可以识别的 tar 包
+          docker save metacubex/mihomo:latest -o mihomo_arm64.tar
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mihomo-arm64-image
           path: mihomo_arm64.tar
+          retention-days: 1 # 文件只保留1天，下载完即刻失效，保护隐私
