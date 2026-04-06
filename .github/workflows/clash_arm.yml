@@ -1,0 +1,24 @@
+name: Get ARM Clash
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull and Save ARM Clash
+        run: |
+          # 拉取适用于极空间 ARM 架构的镜像 (laoyutang 版自带面板，中文友好)
+          docker pull --platform linux/arm64 laoyutang/clash-and-dashboard:latest
+          
+          # 打包镜像
+          docker save laoyutang/clash-and-dashboard:latest -o clash_arm.tar
+          
+          # 压缩文件减小体积
+          gzip clash_arm.tar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clash-arm-package
+          path: clash_arm.tar.gz
+          retention-days: 1
