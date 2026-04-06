@@ -1,0 +1,24 @@
+name: Get ARM HomeAssistant
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull and Save ARM HA
+        run: |
+          # 拉取适用于极空间 ARM 架构的 HA 稳定版
+          docker pull --platform linux/arm64 homeassistant/home-assistant:stable
+          
+          # 打包镜像
+          docker save homeassistant/home-assistant:stable -o ha_arm.tar
+          
+          # 压缩文件（HA镜像很大，压缩能快很多）
+          gzip ha_arm.tar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ha-arm-package
+          path: ha_arm.tar.gz
+          retention-days: 1
